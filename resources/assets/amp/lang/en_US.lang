@@ -1,0 +1,9 @@
+# Item localizations
+item.AMP:bandedstuff.0.name=Stone-banded glass
+item.AMP:bandedstuff.1.name=Iron-banded redstone block
+item.AMP:bloodystone.name=bloody stone
+# Block localizations
+tile.AMP:red_cell.name=Red Cell
+tile.AMP:multi_color_wool.name=Multi-colored wool
+tile.AMP:bloody_stone.name=Raw redstone block
+

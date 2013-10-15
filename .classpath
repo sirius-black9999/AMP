@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="resources"/>
+	<classpathentry kind="src" path="common"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Minecraft"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/BuildCraft"/>
+	<classpathentry kind="lib" path="D:/Eclipse/Development/forge/mcp/jars/mods/ForgeMultipart-dev-1.6.4-1.0.0.192.jar"/>
+	<classpathentry kind="lib" path="D:/Eclipse/Development/forge/mcp/jars/mods/CodeChickenCore-dev 0.9.0.6.jar"/>
+	<classpathentry kind="lib" path="D:/Eclipse/Development/forge/mcp/jars/mods/1.6.4/CodeChickenLib-dev-1.6.4-1.0.0.36.jar"/>
+	<classpathentry kind="lib" path="D:/Eclipse/Development/forge/mcp/jars/mods/appeng-rv13-c-mc162.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>

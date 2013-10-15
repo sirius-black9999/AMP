@@ -1,0 +1,20 @@
+[
+{
+  "modid": "AMP",
+  "name": "Aerial Mage Prototype",
+  "description": "The official Aerial Mage Prototype mod! no release available!",
+  "version": "0.0.1",
+  "url": "N/A",
+  "updateUrl": "",
+  "authorList": [
+    "Sirius)(Black"
+  ],
+  "credits": "Pahimar, for helping me set up my workspace better in his let's mod series",
+  "logoFile": "",
+  "screenshots": [
+  ],
+  "parent":"",
+  "dependencies": [
+  ]
+}
+]
