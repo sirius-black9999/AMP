@@ -18,9 +18,8 @@ red cells (done)
 	you can craft a glass pane with 8 smoothstone to get stone-banded glass
 	you can craft a redstone block with 4 iron to get an iron-banded redstone block
 	you can craft an iron-banded redstone block with 8 stone-banded glass to get 1 red cell
-	
 	red cells activate when receiving a redstone signal
-	red cells activate when exactly 1 or 2 neighboring blocks (directly adjacent or with 1 full edge touching) are activated
+	red cells activate when exactly 1 or 2 neighboring blocks (directly adjacent / 1 edge touching) are activated
 
 magnetic blocks(mostly done)
 	magnetic blocks can be spawned from the creative menu
