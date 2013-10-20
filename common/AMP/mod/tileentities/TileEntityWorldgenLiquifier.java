@@ -1,8 +1,6 @@
 package AMP.mod.tileentities;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map.Entry;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -15,14 +13,24 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.gui.MinecraftServerGui;
+import net.minecraftforge.common.ForgeDirection;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.FluidTankInfo;
+import net.minecraftforge.fluids.IFluidHandler;
+import net.minecraftforge.fluids.IFluidTank;
 import AMP.mod.core.PacketHandler;
 import AMP.mod.core.worldgen.WorldgenMonitor;
+import AMP.mod.entry.AMPMod;
 
-public class TileEntityMagneticInductionFurnace extends TileEntityMagnetic implements ISidedInventory {
+public class TileEntityWorldgenLiquifier extends TileEntityMagnetic implements ISidedInventory, IFluidHandler {
     private static final int[] slots_top = new int[] {0};
     private static final int[] slots_bottom = new int[] {1};
-	private ItemStack[] furnaceItemStacks = new ItemStack[2];
-	public TileEntityMagneticInductionFurnace() {
+	private ItemStack[] furnaceItemStacks = new ItemStack[1];
+    public FluidStack tank;
+    private FluidTankInfo[] tankInfo = new FluidTankInfo[]{new FluidTankInfo(tank, 4000)};
+	public TileEntityWorldgenLiquifier() {
+		tank = new FluidStack(AMPMod.fluidLiquidWorldgen, 0);
 	}
 	@Override
 	public boolean canUpdate() {
@@ -36,7 +44,7 @@ public class TileEntityMagneticInductionFurnace extends TileEntityMagnetic imple
 	{		
 		return 0;
 	};
-	public void adjacentMagnets(TileEntityMagneticInductionFurnace neighbor)
+	public void adjacentMagnets(TileEntityWorldgenLiquifier neighbor)
 	{
 	}
 
@@ -74,7 +82,7 @@ public class TileEntityMagneticInductionFurnace extends TileEntityMagnetic imple
             }
         }
 	}
-	int cooldown;
+	int phase;
 	/**
      * Allows the entity to update its state. Overridden in most subclasses, e.g. the mob spawner uses this to count
      * ticks and creates a new spawn inside its implementation.
@@ -86,23 +94,23 @@ public class TileEntityMagneticInductionFurnace extends TileEntityMagnetic imple
         {
         	if(this.gauss > 72000)
         		this.gauss = 72000;
-			if(cooldown <= 0)
-			{
-				int rarity = (int) cap(WorldgenMonitor.getItemRarity(furnaceItemStacks[0], this.worldObj, xCoord, zCoord));
-				if (this.canSmelt() && gauss > rarity)
+				if (this.canSmelt() && gauss > 1000 && phase < 100)
 				{
-					System.out.println(rarity);
-					gauss -= cap(rarity);
-					
+					gauss -= 1000;
+					phase++;
+				}
+				else if(this.canSmelt() && gauss > 1000 && phase >= 100)
+				{
+					System.out.println("smelting "+furnaceItemStacks[0].getDisplayName()+", tank contents: "+tank.amount+"/4000");
 					this.smeltItem();
 					flag1 = true;
-					cooldown = 1;
+					phase = 0;
 				}
-			}
-			else
-			{
-				cooldown--;
-			}
+				else if(!this.canSmelt())
+				{
+					
+					phase = 0;
+				}
         }
         
         if (flag1)
@@ -111,9 +119,6 @@ public class TileEntityMagneticInductionFurnace extends TileEntityMagnetic imple
         }
         dieOff();
     }
-	private float cap(int i) {
-		return i<1000?1000:i<71000?i:71000;
-	}
 	@Override
 	public void dieOff() 
 	{
@@ -123,7 +128,6 @@ public class TileEntityMagneticInductionFurnace extends TileEntityMagnetic imple
 			this.gauss = 0;
 		//worldObj.markBlocksDirtyVertical(xCoord, yCoord, zCoord, blockType.blockID);
 	};
-
 	/**
      * Returns true if the furnace can smelt an item, i.e. has a source item, destination stack isn't full, etc.
      */
@@ -135,27 +139,12 @@ public class TileEntityMagneticInductionFurnace extends TileEntityMagnetic imple
         }
         else
         {
-            ItemStack itemstack = FurnaceRecipes.smelting().getSmeltingResult(this.furnaceItemStacks[0]);
-            
-            if(WorldgenMonitor.getItemRarity(furnaceItemStacks[0], this.worldObj, xCoord, zCoord) == -1)
+        	int rarity = WorldgenMonitor.getItemRarity(furnaceItemStacks[0], this.worldObj, xCoord, zCoord);
+            if(rarity == -1)
             	return false;
-            if (itemstack == null)
-            {
-                return false;
-            }
-
-            if (this.furnaceItemStacks[1] == null)
-            {
-                return true;
-            }
-
-            if (!this.furnaceItemStacks[1].isItemEqual(itemstack))
-            {
-                return false;
-            }
-
-            int result = furnaceItemStacks[1].stackSize + itemstack.stackSize;
-            return (result <= getInventoryStackLimit() && result <= itemstack.getMaxStackSize());
+            else if(WorldgenMonitor.getItemRarity(furnaceItemStacks[0], this.worldObj, xCoord, zCoord)+tank.amount > 4000)
+            	return false;
+            return true;
         }
     }
 	
@@ -164,26 +153,14 @@ public class TileEntityMagneticInductionFurnace extends TileEntityMagnetic imple
      */
     public void smeltItem()
     {
-        if (this.canSmelt())
-        {
-            ItemStack itemstack = FurnaceRecipes.smelting().getSmeltingResult(this.furnaceItemStacks[0]);
-
-            if (this.furnaceItemStacks[1] == null)
-            {
-                this.furnaceItemStacks[1] = itemstack.copy();
-            }
-            else if (this.furnaceItemStacks[1].isItemEqual(itemstack))
-            {
-                furnaceItemStacks[1].stackSize += itemstack.stackSize;
-            }
-
-            --this.furnaceItemStacks[0].stackSize;
-
-            if (this.furnaceItemStacks[0].stackSize <= 0)
-            {
-                this.furnaceItemStacks[0] = null;
-            }
-        }
+    	int value = WorldgenMonitor.getItemRarity(furnaceItemStacks[0], this.worldObj, xCoord, zCoord);
+    	if(value > 4000)
+    		value = 4000;
+    	if(tank.amount+value <= 4000)
+    	{
+    		decrStackSize(0, 1);
+    		tank.amount += value;
+    	}
     }
 
 	@Override
@@ -193,7 +170,7 @@ public class TileEntityMagneticInductionFurnace extends TileEntityMagnetic imple
 
 	@Override
 	public ItemStack getStackInSlot(int i) {
-		return furnaceItemStacks[i];
+		return furnaceItemStacks[0];
 	}
 
 	/**
@@ -264,7 +241,7 @@ public class TileEntityMagneticInductionFurnace extends TileEntityMagnetic imple
 
 	@Override
 	public String getInvName() {
-		return "magnetic induction furnace";
+		return "worldgen liquifier";
 	}
 
 	@Override
@@ -349,7 +326,8 @@ public class TileEntityMagneticInductionFurnace extends TileEntityMagnetic imple
     public void handlePacketData(float gauss, int fluidAmount, int[] intData)
     {
     	//System.out.println("handling packet data for "+gauss+ " / "+Arrays.toString(intData));
-        TileEntityMagneticInductionFurnace chest = this;
+        TileEntityWorldgenLiquifier chest = this;
+        tank.amount = fluidAmount;
         this.gauss = gauss;
         if (intData != null)
         {
@@ -379,4 +357,133 @@ public class TileEntityMagneticInductionFurnace extends TileEntityMagnetic imple
     	//System.out.println("getting description packet for magnetic induction furnace");
         return PacketHandler.getPacket(this);
     }
+//
+//
+//	@Override
+//	public FluidStack getFluid() {
+//		return tank;
+//	}
+//
+//
+//	@Override
+//	public int getFluidAmount() {
+//		return tank.amount;
+//	}
+//
+//
+//	@Override
+//	public int getCapacity() {
+//		return 4000;
+//	}
+//
+//
+//	@Override
+//	public FluidTankInfo getInfo() {
+//		return tankInfo;
+//	}
+//
+//
+//	@Override
+//	public int fill(FluidStack resource, boolean doFill) {
+//		if(doFill)
+//		{
+//			if(tank.isFluidEqual(resource))
+//			{
+//				if(tank.amount + resource.amount < 4000)
+//				{
+//					tank.amount += resource.amount;
+//					return resource.amount;
+//				}
+//				else
+//				{
+//					int difference = 4000-tank.amount;
+//					tank.amount = 4000;
+//					return resource.amount-difference;
+//				}
+//			}
+//		}
+//		return 0;
+//	}
+//
+//
+//	@Override
+//	public FluidStack drain(int maxDrain, boolean doDrain) {
+//		if(maxDrain > tank.amount)
+//		{
+//			int tankAmount = tank.amount;
+//			tank.amount = 0;
+//			return new FluidStack(AMPMod.fluidLiquidWorldgen, tankAmount);
+//		}
+//		else
+//		{
+//			tank.amount -= maxDrain;
+//			return new FluidStack(AMPMod.fluidLiquidWorldgen, maxDrain);
+//		}
+//	}
+	@Override
+	public int fill(ForgeDirection from, FluidStack resource, boolean doFill) {
+		if(doFill && resource.isFluidEqual(tank))
+		{
+			if(tank.isFluidEqual(resource))
+			{
+				if(tank.amount + resource.amount < 4000)
+				{
+					tank.amount += resource.amount;
+					return resource.amount;
+				}
+				else
+				{
+					int difference = 4000-tank.amount;
+					tank.amount = 4000;
+					return resource.amount-difference;
+				}
+			}
+		}
+		return 0;
+	}
+	@Override
+	public FluidStack drain(ForgeDirection from, FluidStack resource,
+			boolean doDrain) {
+		if(resource.isFluidEqual(tank))
+		{
+		if(resource.amount > tank.amount)
+			{
+				int tankAmount = tank.amount;
+				tank.amount = 0;
+				return new FluidStack(AMPMod.fluidLiquidWorldgen, tankAmount);
+			}
+			else
+			{
+				tank.amount -= resource.amount;
+				return new FluidStack(AMPMod.fluidLiquidWorldgen, resource.amount);
+			}
+		}
+		return null;
+	}
+	@Override
+	public FluidStack drain(ForgeDirection from, int maxDrain, boolean doDrain) {
+		if(maxDrain > tank.amount)
+			{
+				int tankAmount = tank.amount;
+				tank.amount = 0;
+				return new FluidStack(AMPMod.fluidLiquidWorldgen, tankAmount);
+			}
+			else
+			{
+				tank.amount -= maxDrain;
+				return new FluidStack(AMPMod.fluidLiquidWorldgen, maxDrain);
+			}
+	}
+	@Override
+	public boolean canFill(ForgeDirection from, Fluid fluid) {
+		return fluid.getID() == tank.fluidID;
+	}
+	@Override
+	public boolean canDrain(ForgeDirection from, Fluid fluid) {
+		return fluid.getID() == tank.fluidID;
+	}
+	@Override
+	public FluidTankInfo[] getTankInfo(ForgeDirection from) {
+		return tankInfo;
+	}
 }

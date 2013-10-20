@@ -5,20 +5,27 @@ import java.sql.Ref;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
+import net.minecraft.client.Minecraft;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.src.ModLoader;
+import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.Configuration;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidRegistry;
 import AMP.mod.blocks.BlockBloodyStone;
 import AMP.mod.blocks.BlockMagnetInductionFurnace;
 import AMP.mod.blocks.BlockMagneticConductor;
 import AMP.mod.blocks.BlockMulticolorWool;
 import AMP.mod.blocks.BlockRedCell;
+import AMP.mod.blocks.BlockWorldgenLiquifier;
+import AMP.mod.blocks.BlockWorldgenRegenerator;
 import AMP.mod.core.CreativeTabsAMP;
 import AMP.mod.core.PacketHandler;
 import AMP.mod.core.Reference;
 import AMP.mod.core.worldgen.WorldgenMonitor;
+import AMP.mod.fluids.LiquidWorldgen;
 import AMP.mod.items.ItemBloodyStone;
 import AMP.mod.items.ItemRedCells;
 import AMP.mod.proxy.CommonProxy;
@@ -45,8 +52,8 @@ import cpw.mods.fml.common.network.NetworkRegistry;
  * 
  */
 
-@Mod(modid = Reference.MOD_ID, name = Reference.MOD_NAME, version = Reference.VERSION)
-@NetworkMod(channels = { "AMP" }, versionBounds = "[5.2,)", clientSideRequired = true, serverSideRequired = false, packetHandler = PacketHandler.class)
+@Mod(modid = Reference.MOD_ID, name = Reference.MOD_NAME, version = Reference.VERSION, dependencies = "required-after:Forge@[7.0,);required-after:FML@[5.0.5,)")
+@NetworkMod(channels = { "AMP" }, versionBounds = "[0.0.1]", clientSideRequired = true, serverSideRequired = false, packetHandler = PacketHandler.class)
 public class AMPMod{
 	@Instance(Reference.MOD_ID)
 	public static AMPMod instance;
@@ -62,6 +69,9 @@ public class AMPMod{
 	public static Block blockBloodyStone;
 	public static Block blockMagneticConductor;
 	public static Block blockMagneticInductionFurnace;
+	public static Block blockWorldgenLiquifier;
+	public static Block blockWorldgenRegenerator;
+	public static Fluid fluidLiquidWorldgen;
 	public static File configAlt;
     /***
      * This is code that is executed prior to your mod being initialized into of Minecraft
@@ -97,15 +107,19 @@ public class AMPMod{
     	//proxy.registerTickHandlers();
     	instance = this;
     	blockMultiColorWool = new BlockMulticolorWool(Reference.multiColorWoolId, Material.cloth).setHardness(1.5F).setStepSound(Block.soundClothFootstep).setTextureName("multi_color_wool").setUnlocalizedName("AMP:multi_color_wool").setCreativeTab(CreativeTabsAMP.instance);
-    	blockRedCellV2 = new BlockRedCell(Reference.redCellId).setHardness(1.5F).setStepSound(Block.soundClothFootstep).setTextureName("red_cell").setUnlocalizedName("AMP:red_cell").setCreativeTab(CreativeTabsAMP.instance);;
+    	blockRedCellV2 = new BlockRedCell(Reference.redCellId).setHardness(1.5F).setStepSound(Block.soundClothFootstep).setTextureName("red_cell").setUnlocalizedName("AMP:red_cell").setCreativeTab(CreativeTabsAMP.instance);
     	blockBloodyStone = new BlockBloodyStone(Reference.bloodyStoneId, Material.rock).setHardness(1.5F).setStepSound(Block.soundClothFootstep).setTextureName("block_bloody_stone").setUnlocalizedName("AMP:bloody_stone").setCreativeTab(CreativeTabsAMP.instance);
     	blockMagneticConductor = new BlockMagneticConductor(Reference.magneticConductorId, Material.rock).setHardness(1.5F).setStepSound(Block.soundClothFootstep).setTextureName("block_magnetic_conductor").setUnlocalizedName("AMP:magnet_block").setCreativeTab(CreativeTabsAMP.instance);
     	blockMagneticInductionFurnace = new BlockMagnetInductionFurnace(Reference.magneticConductionFurnaceId, Material.rock).setHardness(1.5F).setStepSound(Block.soundClothFootstep).setTextureName("block_magnetic_furnace_block").setUnlocalizedName("AMP:magnet_furnace_block").setCreativeTab(CreativeTabsAMP.instance);
+    	blockWorldgenLiquifier = new BlockWorldgenLiquifier(Reference.magneticWorldgenLiquifierId, Material.rock).setHardness(1.5F).setStepSound(Block.soundClothFootstep).setTextureName("block_worldgen_liquifier").setUnlocalizedName("AMP:worldgen_liquifier_block").setCreativeTab(CreativeTabsAMP.instance);
+    	blockWorldgenRegenerator = new BlockWorldgenRegenerator(Reference.magneticWorldgenRegeneratorId, Material.rock).setHardness(1.5F).setStepSound(Block.soundClothFootstep).setTextureName("block_worldgen_regenerator").setUnlocalizedName("AMP:worldgen_regenerator_block").setCreativeTab(CreativeTabsAMP.instance);
     	ModLoader.registerBlock(blockMultiColorWool);
     	ModLoader.registerBlock(blockRedCellV2);
     	ModLoader.registerBlock(blockBloodyStone);
     	ModLoader.registerBlock(blockMagneticConductor);
     	ModLoader.registerBlock(blockMagneticInductionFurnace);
+    	ModLoader.registerBlock(blockWorldgenLiquifier);
+    	ModLoader.registerBlock(blockWorldgenRegenerator);
     	
 
     	itemBandedStuff = new ItemRedCells(Reference.bandedItemsId);
@@ -116,6 +130,9 @@ public class AMPMod{
     	
     	GaussMeter = new AMP.mod.items.ItemGaussMeter(Reference.gaussMeterId);
     	GaussMeter.setUnlocalizedName(Reference.MOD_ID+":gaussmeter");
+    	
+    	fluidLiquidWorldgen = new LiquidWorldgen("liquid worldgen");
+    	FluidRegistry.registerFluid(fluidLiquidWorldgen);
     	
     }
     
@@ -144,9 +161,7 @@ public class AMPMod{
         ModLoader.registerTileEntity(TileEntityMagnetic.class, "magnetBlock");
        
         MinecraftForge.EVENT_BUS.register(new WorldgenMonitor());
-        
-        
-        //MinecraftForge.EVENT_BUS.register(this);
+        MinecraftForge.EVENT_BUS.register(fluidLiquidWorldgen);
     }
     
     /***

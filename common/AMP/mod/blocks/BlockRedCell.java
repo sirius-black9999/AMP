@@ -62,7 +62,6 @@ public class BlockRedCell extends Block{
 		par3List.add(new ItemStack(this, 1, 10));
 	}
     
-    @SideOnly(Side.CLIENT)
     String[] iconNames = new String[]{"inactive", "pre_active", "active", "pre_cooldown", "cooldown"};
     @SideOnly(Side.CLIENT)
     /**

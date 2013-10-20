@@ -44,6 +44,8 @@ public class Reference {
     public static int multiColorWoolId;
     public static int magneticConductorId;
     public static int magneticConductionFurnaceId;
+    public static int magneticWorldgenLiquifierId;
+    public static int magneticWorldgenRegeneratorId;
     public static int bloodyStoneId;
     public static int redCellId;
     /**
@@ -59,6 +61,8 @@ public class Reference {
 		magneticConductionFurnaceId = cfg.getBlock("magneticConductionFurnace", 1002).getInt();
 		bloodyStoneId = cfg.getBlock("bloodyStone", 1003).getInt();
 		redCellId = cfg.getBlock("redCell", 1004).getInt();
+		magneticWorldgenLiquifierId = cfg.getBlock("magneticWorldgenLiquifier", 1005).getInt();
+		magneticWorldgenRegeneratorId = cfg.getBlock("magneticWorldgenRegenerator", 1006).getInt();
 		
 		bloodStoneId = cfg.getItem("bloodStone", 10000).getInt();
 		gaussMeterId = cfg.getItem("gaussMeter", 10001).getInt();

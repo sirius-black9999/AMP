@@ -54,7 +54,7 @@ public class TileEntityMagnetic extends TileEntity {
 		//worldObj.markBlocksDirtyVertical(xCoord, yCoord, zCoord, blockType.blockID);
 	}
 
-	public void handlePacketData(float gauss2, int[] item) {
+	public void handlePacketData(float gauss2, int fluidAmount, int[] item) {
 		this.gauss = gauss2;
 		
 	}

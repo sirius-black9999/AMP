@@ -14,6 +14,8 @@ import java.util.Map.Entry;
 import AMP.mod.entry.AMPMod;
 import cpw.mods.fml.common.network.NetworkMod;
 import net.minecraft.block.Block;
+import net.minecraft.item.ItemStack;
+import net.minecraft.world.World;
 import net.minecraft.world.WorldType;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.Chunk;
@@ -38,7 +40,7 @@ public class WorldgenMonitor {
 		int maxChanceID = 0;
 	public WorldgenMonitor()
 	{
-		 for(int i : new int[]{0, 4,5, 7, 8, 9, 10,11, 18, 52})
+		 for(int i : new int[]{0,1,3, 4,5, 7, 8, 9, 10,11, 18, 52})
 		 {
 			 blockBlacklist.add(i);
 		 }
@@ -241,5 +243,35 @@ public class WorldgenMonitor {
 			byte b = biome.getKey();
 			recalcMultipliers(b);
 		}
+	}
+	@SuppressWarnings("unchecked")
+	public static int getItemRarity(ItemStack target, World world, int xCoord, int zCoord) {
+		if(target != null)
+		{
+			if(WorldgenMonitor.multipliers.containsKey(world.getChunkFromBlockCoords(xCoord, zCoord).getBiomeArray()[0]))
+			{
+				if(WorldgenMonitor.multipliers.get(world.getChunkFromBlockCoords(xCoord, zCoord).getBiomeArray()[0]).containsKey(target.itemID))
+				{
+					return WorldgenMonitor.multipliers.get(world.getChunkFromBlockCoords(xCoord, zCoord).getBiomeArray()[0]).get(target.itemID)*10;
+				}
+			}
+			else
+			{
+				for(Entry<Byte, HashMap<Integer, Integer>> entry : WorldgenMonitor.multipliers.entrySet())
+				{
+					byte b = entry.getKey();
+					//System.out.println(b+", "+entry.getValue()+", "+target);
+					if(entry.getValue().containsKey(target.itemID))
+					{
+						return entry.getValue().get(target.itemID)*10;
+					}
+				}
+	//			if(((HashMap<Integer, Integer>)WorldgenMonitor.multipliers.entrySet().toArray()[0]).containsKey(target.itemID))
+	//			{
+	//				return ((HashMap<Integer, Integer>)WorldgenMonitor.multipliers.entrySet().toArray()[0]).get(target.itemID);
+	//			}
+			}
+		}
+		return -1;
 	}
 }

@@ -1,7 +1,10 @@
 package AMP.mod.proxy;
 
 import AMP.mod.containers.MagneticInductionContainer;
+import AMP.mod.containers.WorldgenLiquifierContainer;
 import AMP.mod.tileentities.TileEntityMagneticInductionFurnace;
+import AMP.mod.tileentities.TileEntityWorldgenLiquifier;
+import AMP.mod.tileentities.TileEntityWorldgenRegenerator;
 import cpw.mods.fml.common.network.IGuiHandler;
 import net.minecraft.block.ITileEntityProvider;
 import net.minecraft.entity.player.EntityPlayer;
@@ -32,6 +35,16 @@ public class CommonProxy implements IGuiHandler{
         {
         	TileEntityMagneticInductionFurnace icte = (TileEntityMagneticInductionFurnace) te;
             return new MagneticInductionContainer(player.inventory, icte);
+        }
+        else if (te != null && te instanceof TileEntityWorldgenLiquifier)
+        {
+        	TileEntityWorldgenLiquifier icte = (TileEntityWorldgenLiquifier) te;
+            return new WorldgenLiquifierContainer(player.inventory, icte);
+        }
+        else if (te != null && te instanceof TileEntityWorldgenRegenerator)
+        {
+        	TileEntityWorldgenRegenerator icte = (TileEntityWorldgenRegenerator) te;
+            return new WorldgenLiquifierContainer(player.inventory, icte);
         }
         else
         {
