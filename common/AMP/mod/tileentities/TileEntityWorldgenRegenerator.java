@@ -1,20 +1,14 @@
 package AMP.mod.tileentities;
 
-import java.util.Arrays;
-
-import appeng.api.Blocks;
+import cpw.mods.fml.common.FMLCommonHandler;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.FurnaceRecipes;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.network.packet.Packet;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.gui.MinecraftServerGui;
 import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
@@ -31,6 +25,10 @@ public class TileEntityWorldgenRegenerator extends TileEntityMagnetic implements
     public FluidStack tank;
     private FluidTankInfo[] tankInfo = new FluidTankInfo[]{new FluidTankInfo(tank, 4000)};
     public int selectedItemId = 1;
+    public int selectedPageNum = 0;
+	int cooldown;
+	public int accuValue = 0;
+	public int selectedSlot;
     
 	public TileEntityWorldgenRegenerator() {
 		tank = new FluidStack(AMPMod.fluidLiquidWorldgen, 0);
@@ -85,9 +83,6 @@ public class TileEntityWorldgenRegenerator extends TileEntityMagnetic implements
             }
         }
 	}
-	int cooldown;
-	int accuValue = 0;
-	public int selectedSlot;
 	/**
      * Allows the entity to update its state. Overridden in most subclasses, e.g. the mob spawner uses this to count
      * ticks and creates a new spawn inside its implementation.
@@ -300,13 +295,19 @@ public class TileEntityWorldgenRegenerator extends TileEntityMagnetic implements
         return sortList;
     }
     
-    @Override
-    public void handlePacketData(float gauss, int fluidAmount, int[] intData)
+    public void handlePacketData(float gauss,int pageNum, int itemId, int phase, int fluidAmount, int[] intData)
     {
     	//System.out.println("handling packet data for "+gauss+ " / "+Arrays.toString(intData));
         TileEntityWorldgenRegenerator chest = this;
         this.gauss = gauss;
         this.tank.amount = fluidAmount;
+        this.accuValue = phase;
+        if(FMLCommonHandler.instance().getEffectiveSide().isServer())
+        {
+	        this.selectedItemId = itemId;
+	        this.selectedPageNum = pageNum;
+	        System.out.println("received pagenum "+pageNum+" on "+FMLCommonHandler.instance().getEffectiveSide().toString()+" side");
+        }
         if (intData != null)
         {
             int pos = 0;

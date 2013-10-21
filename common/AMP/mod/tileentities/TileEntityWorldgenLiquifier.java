@@ -1,24 +1,17 @@
 package AMP.mod.tileentities;
 
-import java.util.Arrays;
-
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.crafting.FurnaceRecipes;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.network.packet.Packet;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.gui.MinecraftServerGui;
 import net.minecraftforge.common.ForgeDirection;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
-import net.minecraftforge.fluids.IFluidTank;
 import AMP.mod.core.PacketHandler;
 import AMP.mod.core.worldgen.WorldgenMonitor;
 import AMP.mod.entry.AMPMod;
@@ -82,7 +75,7 @@ public class TileEntityWorldgenLiquifier extends TileEntityMagnetic implements I
             }
         }
 	}
-	int phase;
+	public int phase;
 	/**
      * Allows the entity to update its state. Overridden in most subclasses, e.g. the mob spawner uses this to count
      * ticks and creates a new spawn inside its implementation.
@@ -322,13 +315,13 @@ public class TileEntityWorldgenLiquifier extends TileEntityMagnetic implements I
         return sortList;
     }
     
-    @Override
-    public void handlePacketData(float gauss, int fluidAmount, int[] intData)
+    public void handlePacketData(float gauss, int phase, int fluidAmount, int[] intData)
     {
     	//System.out.println("handling packet data for "+gauss+ " / "+Arrays.toString(intData));
         TileEntityWorldgenLiquifier chest = this;
         tank.amount = fluidAmount;
         this.gauss = gauss;
+        this.phase = phase;
         if (intData != null)
         {
             int pos = 0;

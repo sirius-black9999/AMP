@@ -64,7 +64,7 @@ public class WorldgenLiquifierGui extends GuiContainer {
     protected void drawGuiContainerForegroundLayer(int param1, int param2) {
             //draw text and stuff here
             //the parameters for drawString are: string, x, y, color
-            fontRenderer.drawString("Magnetic worldgen liquifier", 25, -10, 4210752);
+            //fontRenderer.drawString("Magnetic worldgen liquifier", 25, -10, 4210752);
             
             //draws "Inventory" or your regional equivalent
             //fontRenderer.drawString(StatCollector.translateToLocal("container.inventory"), 8, ySize - 96 + 2, 4210752);
@@ -89,13 +89,14 @@ public class WorldgenLiquifierGui extends GuiContainer {
             	this.drawTexturedModalRect(x+6, y+6+72-i1, 176, 72-i1, 16,i1);
             else
             	this.drawTexturedModalRect(x+6, y+6, 176, 0, 16,72);
+            drawTexturedModalRect(x+80, y+35, 193, 0, this.inventory.phase/4, 15);
             
         }
         //System.out.println("tank found to contain ");
         if(inventory.tank.amount > 0)
         {
         	FluidStack liquid = inventory.tank;
-        	int squaled = (int)(((float)liquid.amount/4000f)*62);
+        	int squaled = (int)(((float)liquid.amount/4000f)*63);
     		
     		int start = 0;
 
@@ -128,7 +129,11 @@ public class WorldgenLiquifierGui extends GuiContainer {
     			}
     		}
     	}
-        drawContainerGUI();
+        this.mc.getTextureManager().bindTexture(new ResourceLocation("amp", "textures/gui/worldgenliquifier.png"));
+        drawTexturedModalRect(x+116, y+11, 193, 15, 15, 62);
+        
+        
+        //drawContainerGUI();
     }
 
 	private void drawContainerGUI() {

@@ -1,11 +1,6 @@
 package AMP.mod.tileentities;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map.Entry;
-
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -13,8 +8,6 @@ import net.minecraft.item.crafting.FurnaceRecipes;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.network.packet.Packet;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.gui.MinecraftServerGui;
 import AMP.mod.core.PacketHandler;
 import AMP.mod.core.worldgen.WorldgenMonitor;
 
@@ -344,9 +337,7 @@ public class TileEntityMagneticInductionFurnace extends TileEntityMagnetic imple
         }
         return sortList;
     }
-    
-    @Override
-    public void handlePacketData(float gauss, int fluidAmount, int[] intData)
+    public void handlePacketData(float gauss, int[] intData)
     {
     	//System.out.println("handling packet data for "+gauss+ " / "+Arrays.toString(intData));
         TileEntityMagneticInductionFurnace chest = this;

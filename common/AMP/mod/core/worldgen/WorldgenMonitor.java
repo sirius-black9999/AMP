@@ -9,6 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map.Entry;
 
 import AMP.mod.entry.AMPMod;
@@ -54,7 +55,7 @@ public class WorldgenMonitor {
 	{
 		if(evt.world.getWorldInfo().getTerrainType() != WorldType.FLAT)
 		{
-			Chunk c = evt.world.getChunkFromChunkCoords(evt.chunkX, evt.chunkZ);
+			Chunk c = evt.chunkProvider.provideChunk(evt.chunkX, evt.chunkZ);
 			byte biome = c.getBiomeArray()[0];
 			if(freqs == null)
 				freqs = new HashMap<Byte, HashMap<Integer,Integer>>();
@@ -96,6 +97,18 @@ public class WorldgenMonitor {
 			}
 		}
 		//System.out.println(freqs.get(biome).toString());
+	}
+	public static Integer[] getAllUniqueBlockIds()
+	{
+		HashSet<Integer> blockIDs = new HashSet<Integer>();
+		for(Entry<Byte, HashMap<Integer, Integer>> biome : multipliers.entrySet())
+		{
+			for(Entry<Integer, Integer> block : biome.getValue().entrySet())
+			{
+				blockIDs.add(block.getKey());
+			}
+		}
+		return blockIDs.toArray(new Integer[blockIDs.size()]);
 	}
 	private void recalcMultipliers(byte biome)
 	{

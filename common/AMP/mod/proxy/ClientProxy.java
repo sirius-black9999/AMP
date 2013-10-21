@@ -19,6 +19,11 @@ public class ClientProxy extends CommonProxy {
         public void registerRenderers() {
                 // This is for rendering entities and so forth later on
         }
+        @Override
+        public void setInventoryPageNum(TileEntityWorldgenRegenerator inv,
+        	int pagenum) {
+        	inv.selectedPageNum = pagenum;
+        }
         
 
         @Override

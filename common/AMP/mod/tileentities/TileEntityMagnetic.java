@@ -4,7 +4,6 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.tileentity.TileEntity;
 import AMP.mod.core.PacketHandler;
-import AMP.mod.entry.AMPMod;
 
 public class TileEntityMagnetic extends TileEntity {
 
@@ -54,13 +53,13 @@ public class TileEntityMagnetic extends TileEntity {
 		//worldObj.markBlocksDirtyVertical(xCoord, yCoord, zCoord, blockType.blockID);
 	}
 
-	public void handlePacketData(float gauss2, int fluidAmount, int[] item) {
+	public void handlePacketData(float gauss2) {
 		this.gauss = gauss2;
 		
 	}
 	@Override
     public Packet getDescriptionPacket()
     {
-        return PacketHandler.getPacketMagnetic(this);
+        return PacketHandler.getPacket(this);
     }
 }

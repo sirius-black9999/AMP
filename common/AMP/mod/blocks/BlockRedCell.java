@@ -12,6 +12,7 @@ import AMP.mod.core.CreativeTabsAMP;
 import AMP.mod.core.Reference;
 import AMP.mod.entry.AMPMod;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockEventData;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.IconRegister;
@@ -19,9 +20,16 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.ItemDye;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.Icon;
+import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldManager;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.storage.ExtendedBlockStorage;
 import net.minecraftforge.common.ForgeDirection;
+import net.minecraftforge.event.ForgeSubscribe;
+import net.minecraftforge.event.world.BlockEvent;
+import net.minecraftforge.event.world.ChunkEvent;
+import net.minecraftforge.event.world.WorldEvent;
 
 public class BlockRedCell extends Block{
 
@@ -48,7 +56,7 @@ public class BlockRedCell extends Block{
      */
     public int damageDropped(int metadata)
     {
-        return (metadata/5)*5;
+        return 0;
     }
 
 
@@ -96,7 +104,7 @@ public class BlockRedCell extends Block{
     	{
     		if(!par1World.isBlockIndirectlyGettingPowered(x, y, z))
     		{
-    			par1World.setBlockMetadataWithNotify(x, y, z, damageDropped(meta), 2);
+    			par1World.setBlockMetadataWithNotify(x, y, z, 0, 2);
     			doBlockUpdate(par1World, x, y, z);
 			}
 			else
@@ -122,7 +130,49 @@ public class BlockRedCell extends Block{
     			}
     	}
     }
+    private void revertBlocks(Chunk c)
+    {
+    	for(int x = 0; x < 16; x++)
+			for(int y = 0; y < 256; y++)
+				for(int z = 0; z < 16; z++)
+					if(c.getBlockID(x, y, z) == this.blockID)
+					{
+						c.setBlockIDWithMetadata(x, y, z, 1, 0);
 
+						c.setBlockIDWithMetadata(x, y, z, this.blockID, 0);
+						
+						//c.setBlockMetadataWithNotify(x, y, z, 0, 2);
+						//doBlockUpdate(w, x, y, z);
+						//w.scheduleBlockUpdateWithPriority(x, y, z, this.blockID, tickRate(), -1);
+					}
+    }
+    @ForgeSubscribe
+    public void onSave(ChunkEvent.Load evt)
+    {
+    	//System.out.println("calling onLoad");
+    	Chunk c = evt.getChunk();
+    	revertBlocks(c);
+    }
+    @ForgeSubscribe
+    public void onSave(WorldEvent.Load evt)
+    {
+    	System.out.println("calling onLoad for "+evt.world.activeChunkSet.size()+" chunks");
+    	for(Object pair : evt.world.activeChunkSet)
+    	{
+    		if(pair instanceof ChunkCoordIntPair)
+    		{
+    			ChunkCoordIntPair p = (ChunkCoordIntPair)pair;
+    			Chunk c = evt.world.getChunkFromChunkCoords(p.chunkXPos, p.chunkZPos);
+	    		System.out.println("unloading ("+((Chunk)c).xPosition+", "+((Chunk)c).zPosition+")");
+	    		revertBlocks((Chunk)c);
+    		}
+    	}
+    }
+@Override
+public void onBlockAdded(World par1World, int x, int y, int z) {
+	//par1World.scheduleBlockUpdateWithPriority(x, y, z, this.blockID, tickRate(), -1);
+	super.onBlockAdded(par1World,x, y, z);
+}
 
 	private void doBlockUpdate(World par1World, int par2, int par3, int par4) {
 	  par1World.notifyBlockOfNeighborChange(par2 + 1, par3, par4, this.blockID);

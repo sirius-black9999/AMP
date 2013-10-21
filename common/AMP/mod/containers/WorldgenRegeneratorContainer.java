@@ -1,11 +1,18 @@
 package AMP.mod.containers;
 
+import java.util.HashMap;
+import java.util.Map.Entry;
+
+import AMP.mod.core.PacketHandler;
+import AMP.mod.core.worldgen.WorldgenMonitor;
 import AMP.mod.entry.AMPMod;
+import AMP.mod.tileentities.TileEntityWorldgenRegenerator;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.FurnaceRecipes;
 import net.minecraft.tileentity.TileEntityFurnace;
@@ -18,7 +25,7 @@ import net.minecraftforge.liquids.ITankContainer;
 public class WorldgenRegeneratorContainer extends Container implements IFluidTank
 {
 	private EntityPlayer player;
-    private IInventory chest;
+    public IInventory chest;
     private FluidStack tank;
     private FluidTankInfo tankInfo;
     
@@ -44,10 +51,15 @@ public class WorldgenRegeneratorContainer extends Container implements IFluidTan
         super.onContainerClosed(entityplayer);
         chest.closeChest();
     }
-
+    public void redoLayout()
+    {
+    	fillItemSlots(37,56, (TileEntityWorldgenRegenerator)chest);
+    	PacketHandler.SendPacketClientToServer(chest);
+    }
     protected void layoutContainer(IInventory playerInventory, IInventory chestInventory)
     {
-    	System.out.println("-------------layoutContainer---------------------");
+    	inventorySlots.clear();
+    	System.out.println("-------------layoutContainer---------------------"+player.worldObj.isRemote);
     	System.out.println(this.inventorySlots.size());
         int leftCol = (168 - 162) / 2 + 1;
         for (int playerInvRow = 0; playerInvRow < 3; playerInvRow++)
@@ -70,14 +82,42 @@ public class WorldgenRegeneratorContainer extends Container implements IFluidTan
         {
         	for(int col = 0; col < 5; col++)
         	{
-        		addSlotToContainer(new SlotSelectable(chest, row*5+col+1, 35+(18*col), -10+18*row));
+        		addSlotToContainer(new Slot(chest, row*5+col+1, 35+(18*col), -10+18*row));
         	}
         }
-        
+        fillItemSlots(37,56, (TileEntityWorldgenRegenerator)chest);
         System.out.println(this.inventorySlots.size());
     }
+    @SuppressWarnings("unchecked")
+	public void fillItemSlots(int start, int end, TileEntityWorldgenRegenerator inv) {
+    	
+    	int pageNum = inv.selectedPageNum;
+		Integer[] entries = WorldgenMonitor.getAllUniqueBlockIds();
+    	for(int i = 0; i < end-start+1; i++)
+		{
+    		
+    		int entry = 20*pageNum+i;
+    		Slot target = (Slot) inventorySlots.get(start+i);
+    		if(entry < entries.length)
+    		{
+    			System.out.println("putting stack "+entries[entry]+" page "+entry+"/"+entries.length);
+				target.inventory.setInventorySlotContents(i+1, new ItemStack(Item.itemsList[entries[entry]]));
+				target.inventory.onInventoryChanged();
+    		}
+    		else
+    		{
+    			System.out.println("clearing stack " + entry);
+    			target.inventory.setInventorySlotContents(i+1, null);
+    			target.inventory.onInventoryChanged();
+    		}
+    		target.onSlotChanged();
+		}
+    	detectAndSendChanges();
+    	inv.onInventoryChanged();
+    	PacketHandler.SendPacketClientToServer(inv);
+	}
 
-    @Override
+	@Override
     public boolean canInteractWith(EntityPlayer player)
     {
         return chest.isUseableByPlayer(player);

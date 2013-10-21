@@ -162,6 +162,8 @@ public class AMPMod{
        
         MinecraftForge.EVENT_BUS.register(new WorldgenMonitor());
         MinecraftForge.EVENT_BUS.register(fluidLiquidWorldgen);
+        MinecraftForge.EVENT_BUS.register(blockRedCellV2);
+        
     }
     
     /***

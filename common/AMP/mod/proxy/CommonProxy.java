@@ -2,6 +2,7 @@ package AMP.mod.proxy;
 
 import AMP.mod.containers.MagneticInductionContainer;
 import AMP.mod.containers.WorldgenLiquifierContainer;
+import AMP.mod.containers.WorldgenRegeneratorContainer;
 import AMP.mod.tileentities.TileEntityMagneticInductionFurnace;
 import AMP.mod.tileentities.TileEntityWorldgenLiquifier;
 import AMP.mod.tileentities.TileEntityWorldgenRegenerator;
@@ -27,6 +28,10 @@ public class CommonProxy implements IGuiHandler{
         return null;
     }
 
+    public void setInventoryPageNum(TileEntityWorldgenRegenerator inv, int pagenum)
+    {
+    	inv.selectedPageNum = pagenum;
+    }
     @Override
     public Object getServerGuiElement(int ID, EntityPlayer player, World world, int X, int Y, int Z)
     {
@@ -44,7 +49,7 @@ public class CommonProxy implements IGuiHandler{
         else if (te != null && te instanceof TileEntityWorldgenRegenerator)
         {
         	TileEntityWorldgenRegenerator icte = (TileEntityWorldgenRegenerator) te;
-            return new WorldgenLiquifierContainer(player.inventory, icte);
+            return new WorldgenRegeneratorContainer(player.inventory, icte);
         }
         else
         {

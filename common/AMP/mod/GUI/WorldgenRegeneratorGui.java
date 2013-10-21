@@ -12,25 +12,21 @@ package AMP.mod.GUI;
 
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.texture.TextureMap;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.Slot;
 import net.minecraft.util.Icon;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.common.network.ForgePacket;
+import net.minecraftforge.common.network.ForgePacketHandler;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
 
 import org.lwjgl.opengl.GL11;
 
-import AMP.mod.blocks.BlockMagnetInductionFurnace;
-import AMP.mod.containers.MagneticInductionContainer;
-import AMP.mod.containers.SlotSelectable;
-import AMP.mod.containers.WorldgenLiquifierContainer;
 import AMP.mod.containers.WorldgenRegeneratorContainer;
-import AMP.mod.tileentities.TileEntityMagneticInductionFurnace;
-import AMP.mod.tileentities.TileEntityWorldgenLiquifier;
+import AMP.mod.core.worldgen.WorldgenMonitor;
+import AMP.mod.entry.AMPMod;
 import AMP.mod.tileentities.TileEntityWorldgenRegenerator;
 
 
@@ -38,12 +34,14 @@ public class WorldgenRegeneratorGui extends GuiContainer {
 
 		InventoryPlayer player;
 		TileEntityWorldgenRegenerator inventory;
+		
 		int selectedRow;
 		int selectedCol;
 		private static final ResourceLocation BLOCK_TEXTURE = TextureMap.locationBlocksTexture;
         private WorldgenRegeneratorGui( IInventory player, TileEntityWorldgenRegenerator te)
         {
             super(makeContainer(player, te));
+            
             this.allowUserInput = false;
             	inventory = te;
             	this.player = (InventoryPlayer) player;
@@ -69,21 +67,46 @@ public class WorldgenRegeneratorGui extends GuiContainer {
             //draw text and stuff here
             //the parameters for drawString are: string, x, y, color
             //fontRenderer.drawString("Magnetic worldgen liquifier", 25, -10, 4210752);
-            
+    	GL11.glDisable(GL11.GL_DEPTH_TEST);
+    	GL11.glEnable(GL11.GL_BLEND);
+		this.mc.getTextureManager().bindTexture(myBG);
+    	this.drawTexturedModalRect(34+18*selectedCol, -11+18*selectedRow, 215, 0, 17,17);
+    	GL11.glDisable(GL11.GL_BLEND);
+    	GL11.glEnable(GL11.GL_DEPTH_TEST);
             //draws "Inventory" or your regional equivalent
             //fontRenderer.drawString(StatCollector.translateToLocal("container.inventory"), 8, ySize - 96 + 2, 4210752);
     }
-    
+    @Override
+    public void drawScreen(int par1, int par2, float par3) 
+    {
+    	super.drawScreen(par1, par2, par3);
+
+    };
+    ResourceLocation myBG = new ResourceLocation("amp", "textures/gui/worldgenregenerator.png");
+    int button1Phase = 1;
+    int button2Phase = 1;
+    int button3Phase = 1;
+    int button4Phase = 1;
+    int x;
+    int y;
     @Override
     protected void drawGuiContainerBackgroundLayer(float f, int i, int j)
     {
-    	
+    	//System.out.println("F: "+f+", I: "+i+", J: "+j);
+    	mouseMovedOrUp(i, j, -1);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         // new "bind tex"
-        this.mc.getTextureManager().bindTexture(new ResourceLocation("amp", "textures/gui/worldgenregenerator.png"));
-        int x = (width - 184) / 2;
-        int y = (height - 202) / 2;
+        this.mc.getTextureManager().bindTexture(myBG);
+        x = (width - 184) / 2;
+        y = (height - 202) / 2;
         drawTexturedModalRect(x, y, 0, 0, 175, 202);
+
+        drawTexturedModalRect(x+152, y+57, 176, 73+16*button1Phase, 16, 16);
+        drawTexturedModalRect(x+133, y+57, 176, 121+16*button2Phase, 16, 16);
+        
+
+        drawTexturedModalRect(x+152, y+10, 192, 121+16*button3Phase, 16, 16);
+        drawTexturedModalRect(x+133, y+10, 208, 121+16*button4Phase, 16, 16);
         if(inventory != null)
         {
             int i1 = (int) this.inventory.gauss/1000;
@@ -95,15 +118,13 @@ public class WorldgenRegeneratorGui extends GuiContainer {
             	this.drawTexturedModalRect(x+6, y+6, 176, 0, 16,72);
             //System.out.println("got inventory, gauss: "+i1);
             //int i2 = 72-i1;
-            	this.drawTexturedModalRect(x+38+18*selectedCol, y+7+18*selectedRow, 215, 0, 17,17);
         }
         
         if(inventory.tank.amount > 0)
         {
         	FluidStack liquid = inventory.tank;
-        	int squaled = (int)(((float)liquid.amount/4000f)*62);
+        	int squaled = (int)(((float)liquid.amount/4000f)*63);
     		
-    		int start = 0;
 
     		Icon liquidIcon = null;
     		Fluid fluid = liquid.getFluid();
@@ -134,7 +155,84 @@ public class WorldgenRegeneratorGui extends GuiContainer {
     			}
     		}
         }
+
+        this.mc.getTextureManager().bindTexture(myBG);
+        drawTexturedModalRect(x+25, y+8, 193, 15, 15, 62);
+        
         drawContainerGUI();
+    }
+    @Override
+    protected void mouseMovedOrUp(int mouseX, int mouseY, int type) {
+    	
+    	//System.out.println(type);
+        if(type >= 0)
+        {
+        	if(button1Phase == 0)
+        	{
+        		button1Phase = 1;
+        	}
+        	if(button2Phase == 0)
+        	{
+        		button2Phase = 1;
+        	}
+        	if(button3Phase == 0)
+        	{
+        		button3Phase = 1;
+        	}
+        	if(button4Phase == 0)
+        	{
+        		button4Phase = 1;
+        	}
+        }
+        else
+        {
+        	if(button1Phase != 0)
+        	{
+	        	if(isPointInRegion(148, 39, 16, 16, mouseX, mouseY))
+	    		{
+	        		button1Phase = 2;
+	    		}
+	        	else
+	        	{
+	        		button1Phase = 1;
+	        	}
+        	}
+        	if(button2Phase != 0)
+        	{
+	        	if(isPointInRegion(129, 39, 16, 16, mouseX, mouseY))
+	    		{
+	        		button2Phase = 2;
+	    		}
+	        	else
+	        	{
+	        		button2Phase = 1;
+	        	}
+        	}
+        	if(button3Phase != 0)
+        	{
+	        	if(isPointInRegion(148, -8, 16, 16, mouseX, mouseY))
+	    		{
+	        		button3Phase = 2;
+	    		}
+	        	else
+	        	{
+	        		button3Phase = 1;
+	        	}
+        	}
+        	if(button4Phase != 0)
+        	{
+	        	if(isPointInRegion(129, -8, 16, 16, mouseX, mouseY))
+	    		{
+	        		button4Phase = 2;
+	    		}
+	        	else
+	        	{
+	        		button4Phase = 1;
+	        	}
+        	}
+        }
+    	
+    super.mouseMovedOrUp(mouseX, mouseY, type);
     }
     @Override
     protected void mouseClicked(int mouseX, int mouseY, int mouseButton) {
@@ -151,6 +249,38 @@ public class WorldgenRegeneratorGui extends GuiContainer {
     			}
     		}
     	}
+    	
+    	if(isPointInRegion(148, 39, 16, 16, mouseX, mouseY))
+		{
+    		button1Phase = 0;
+		}
+    	if(isPointInRegion(129, 39, 16, 16, mouseX, mouseY))
+		{
+    		button2Phase = 0;
+		}
+    	if(isPointInRegion(148, -8, 16, 16, mouseX, mouseY))
+		{
+    		button3Phase = 0;
+    		if(inventory.selectedPageNum*20 < WorldgenMonitor.getAllUniqueBlockIds().length)
+    		{
+    			inventory.selectedPageNum++;
+    			((WorldgenRegeneratorContainer) inventorySlots).redoLayout();
+    			
+    		}
+    		else
+    		{
+    			System.out.println("startIndex: "+inventory.selectedPageNum*20+", endIndex: "+WorldgenMonitor.getAllUniqueBlockIds().length);
+    		}
+		}
+    	if(isPointInRegion(129, -8, 16, 16, mouseX, mouseY))
+		{
+    		button4Phase = 0;
+    		if(inventory.selectedPageNum>0)
+    		{
+    			inventory.selectedPageNum--;
+    			((WorldgenRegeneratorContainer) inventorySlots).redoLayout();
+    		}
+		}
     	if(!gotTriggered)
     		super.mouseClicked(mouseX, mouseY, mouseButton);
     }
@@ -181,5 +311,6 @@ public class WorldgenRegeneratorGui extends GuiContainer {
         	for(int col = 0; col < 5; col++)
                 fontRenderer.drawString(""+counter++, 150+col*18, 38+row*18, 0);
         //System.out.println(this.inventorySlots.size());
+
 	}
 }

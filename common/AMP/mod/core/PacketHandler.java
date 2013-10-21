@@ -14,6 +14,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import net.minecraft.network.INetworkManager;
 import net.minecraft.network.packet.Packet;
@@ -21,6 +24,7 @@ import net.minecraft.network.packet.Packet250CustomPayload;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import AMP.mod.entry.AMPMod;
+import AMP.mod.statics.ClassFinder;
 import AMP.mod.tileentities.TileEntityMagnetic;
 import AMP.mod.tileentities.TileEntityMagneticInductionFurnace;
 import AMP.mod.tileentities.TileEntityWorldgenLiquifier;
@@ -29,184 +33,112 @@ import AMP.mod.tileentities.TileEntityWorldgenRegenerator;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.network.IPacketHandler;
+import cpw.mods.fml.common.network.PacketDispatcher;
 import cpw.mods.fml.common.network.Player;
 
 public class PacketHandler implements IPacketHandler {
 
+	static HashMap<Integer, BasePacket> packets;
+	public PacketHandler()
+	{
+		packets = new HashMap<Integer, BasePacket>();
+		Set<Class<?>> classes;
+		try {
+			classes = ClassFinder.getClasses("AMP.mod.core.packets");
+		
+			BasePacket[] packs = new BasePacket[classes.size()];
+			int counter = 0;
+			for(Class<?> c : classes)
+			{
+					packs[counter++] = (BasePacket) c.newInstance();
+			}
+			for(BasePacket pack : packs)
+			{
+				if(pack != null)
+				packets.put(pack.ID, pack);
+			}
+			System.out.println("succesfully listed "+packets.size()+" classes");
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+	}
 	@Override
     public void onPacketData(INetworkManager network, Packet250CustomPayload packet, Player player)
     {
-        ByteArrayDataInput dat = ByteStreams.newDataInput(packet.data);
-        int x = dat.readInt();
-        int y = dat.readInt();
-        int z = dat.readInt();
-        float gauss = dat.readFloat();
-
-        int fluidAmount = dat.readInt();
-        byte hasStacks = dat.readByte();
-        int[] items = new int[0];
-        if (hasStacks > 0)
+		
+		ByteArrayDataInput dat = ByteStreams.newDataInput(packet.data);
+		int id = dat.readByte();
+        BasePacket target = packets.get(id);
+        if(target != null)
         {
-            items = new int[hasStacks];
-            for (int i = 0; i < items.length; i++)
-            {
-                items[i] = dat.readInt();
-            }
+        	target.parseData(packet.data);
         }
-        World world = AMPMod.proxy.getClientWorld();
-        TileEntity te = world.getBlockTileEntity(x, y, z);
-        TileEntityMagnetic icte = (TileEntityMagnetic) te;
-        icte.handlePacketData(gauss,fluidAmount, items);
+        else
+        {
+        	System.out.println("no target found for id: "+id);
+        }
+        
     }
-	public static Packet getPacket(TileEntityMagneticInductionFurnace clientTileEntity) {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream(140);
-		DataOutputStream dos = new DataOutputStream(bos);
-		int x = clientTileEntity.xCoord;
-		int y = clientTileEntity.yCoord;
-		int z = clientTileEntity.zCoord;
-		float gauss = ((TileEntityMagnetic)clientTileEntity).gauss;
-		int[] items = clientTileEntity.buildIntDataList();
-		try
+	public static Packet getPacket(Object ent) {
+		BasePacket target = null;
+		//System.out.println("comparing "+packets.size()+" packet types");
+		for(Entry<Integer, BasePacket> entry : packets.entrySet())
 		{
-			dos.writeInt(x);
-			dos.writeInt(y);
-			dos.writeInt(z);
-			dos.writeFloat(gauss);
-			dos.writeFloat(0);
-			dos.writeByte(items.length);
-			if (items.length > 0)
+			if(entry.getValue().appliesTo(ent))
 			{
-				for (int i = 0; i < items.length; i++)
-				{
-					dos.writeInt(items[i]);
-				}
+				target = entry.getValue();
+				break;
 			}
-			dos.flush();
-			//System.out.println("sending packet at "+gauss+" / "+Arrays.toString(items));	
 		}
-		catch (IOException e)
+		if(target != null)
 		{
-          // UNPOSSIBLE?
+			Packet250CustomPayload pkt = new Packet250CustomPayload();
+			pkt.channel = "AMP";
+			pkt.data = target.convertData(ent);
+			pkt.length = pkt.data.length;
+			pkt.isChunkDataPacket = true;
+			return pkt;
 		}
-		
-		Packet250CustomPayload pkt = new Packet250CustomPayload();
-		pkt.channel = "AMP";
-		pkt.data = bos.toByteArray();
-		//System.out.println("sending : "+Arrays.toString(pkt.data));
-		pkt.length = bos.size();
-		pkt.isChunkDataPacket = true;
-		return pkt;
+		else
+		{
+			System.out.println("please write a packet handler for "+ent.toString());
+			return null;
+		}
 	}
-	public static Packet getPacketMagnetic(TileEntityMagnetic tileEntityMagnetic) {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream(140);
-		DataOutputStream dos = new DataOutputStream(bos);
-		int x = tileEntityMagnetic.xCoord;
-		int y = tileEntityMagnetic.yCoord;
-		int z = tileEntityMagnetic.zCoord;
-		float gauss = tileEntityMagnetic.gauss;
-		try
-		{
-			dos.writeInt(x);
-			dos.writeInt(y);
-			dos.writeInt(z);
-			dos.writeFloat(gauss);
-			dos.writeInt(0);
-			dos.writeByte(0);
-		}
-		catch (IOException e)
-		{
-          // UNPOSSIBLE?
-		}
-		Packet250CustomPayload pkt = new Packet250CustomPayload();
-		pkt.channel = "AMP";
-		pkt.data = bos.toByteArray();
-		pkt.length = bos.size();
-		pkt.isChunkDataPacket = true;
-		return pkt;
+	public static void SendPacketServerToAllClients(Packet p)
+	{
+		PacketDispatcher.sendPacketToAllPlayers(p);
 	}
-	public static Packet getPacket(
-			TileEntityWorldgenLiquifier tileEntityWorldgenLiquifier) {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream(140);
-		DataOutputStream dos = new DataOutputStream(bos);
-		int x = tileEntityWorldgenLiquifier.xCoord;
-		int y = tileEntityWorldgenLiquifier.yCoord;
-		int z = tileEntityWorldgenLiquifier.zCoord;
-		float gauss = ((TileEntityMagnetic)tileEntityWorldgenLiquifier).gauss;
-		int fluidAmount = tileEntityWorldgenLiquifier.tank.amount;
-		int[] items = tileEntityWorldgenLiquifier.buildIntDataList();
-		
-		try
-		{
-			dos.writeInt(x);
-			dos.writeInt(y);
-			dos.writeInt(z);
-			dos.writeFloat(gauss);
-			dos.writeInt(fluidAmount);
-			dos.writeByte(items.length);
-			if (items.length > 0)
-			{
-				for (int i = 0; i < items.length; i++)
-				{
-					dos.writeInt(items[i]);
-				}
-			}
-			dos.flush();
-			//System.out.println("sending packet at "+gauss+" / "+Arrays.toString(items));	
-		}
-		catch (IOException e)
-		{
-          // UNPOSSIBLE?
-		}
-		
-		Packet250CustomPayload pkt = new Packet250CustomPayload();
-		pkt.channel = "AMP";
-		pkt.data = bos.toByteArray();
-		//System.out.println("sending : "+Arrays.toString(pkt.data));
-		pkt.length = bos.size();
-		pkt.isChunkDataPacket = true;
-		return pkt;
+	public static void SendPacketServerToAllClients(Object o)
+	{
+		PacketDispatcher.sendPacketToAllPlayers(getPacket(o));
 	}
-	public static Packet getPacket(
-			TileEntityWorldgenRegenerator tileEntityWorldgenRegenerator) {
-		ByteArrayOutputStream bos = new ByteArrayOutputStream(140);
-		DataOutputStream dos = new DataOutputStream(bos);
-		int x = tileEntityWorldgenRegenerator.xCoord;
-		int y = tileEntityWorldgenRegenerator.yCoord;
-		int z = tileEntityWorldgenRegenerator.zCoord;
-
-		int fluidAmount = tileEntityWorldgenRegenerator.tank.amount;
-		float gauss = ((TileEntityMagnetic)tileEntityWorldgenRegenerator).gauss;
-		int[] items = tileEntityWorldgenRegenerator.buildIntDataList();
-		try
-		{
-			dos.writeInt(x);
-			dos.writeInt(y);
-			dos.writeInt(z);
-			dos.writeFloat(gauss);
-			dos.writeInt(fluidAmount);
-			dos.writeByte(items.length);
-			if (items.length > 0)
-			{
-				for (int i = 0; i < items.length; i++)
-				{
-					dos.writeInt(items[i]);
-				}
-			}
-			dos.flush();
-			//System.out.println("sending packet at "+gauss+" / "+Arrays.toString(items));	
-		}
-		catch (IOException e)
-		{
-          // UNPOSSIBLE?
-		}
-		
-		Packet250CustomPayload pkt = new Packet250CustomPayload();
-		pkt.channel = "AMP";
-		pkt.data = bos.toByteArray();
-		//System.out.println("sending : "+Arrays.toString(pkt.data));
-		pkt.length = bos.size();
-		pkt.isChunkDataPacket = true;
-		return pkt;
+	public static void SendPacketServerToClient(Packet p, Player player)
+	{
+		PacketDispatcher.sendPacketToPlayer(p, player);
+	}
+	public static void SendPacketServerToClient(Object o, Player player)
+	{
+		PacketDispatcher.sendPacketToPlayer(getPacket(o), player);
+	}
+	public static void SendPacketServerToClient(Packet p, int dimID)
+	{
+		PacketDispatcher.sendPacketToAllInDimension(p, dimID);
+	}
+	public static void SendPacketServerToClient(Object o, int dimID)
+	{
+		PacketDispatcher.sendPacketToAllInDimension(getPacket(o), dimID);
+	}
+	public static void SendPacketClientToServer(Packet p)
+	{
+		PacketDispatcher.sendPacketToServer(p);
+	}
+	public static void SendPacketClientToServer(Object o)
+	{
+		System.out.println("sending "+o.toString()+" to server");
+		PacketDispatcher.sendPacketToServer(getPacket(o));
 	}
 }
