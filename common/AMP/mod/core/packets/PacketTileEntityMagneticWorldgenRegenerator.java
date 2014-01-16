@@ -7,6 +7,9 @@ import java.io.IOException;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 
+import cpw.mods.fml.client.FMLClientHandler;
+import cpw.mods.fml.common.FMLCommonHandler;
+import cpw.mods.fml.server.FMLServerHandler;
 import AMP.mod.core.BasePacket;
 import AMP.mod.entry.AMPMod;
 import AMP.mod.tileentities.TileEntityMagnetic;
@@ -15,6 +18,8 @@ import AMP.mod.tileentities.TileEntityWorldgenLiquifier;
 import AMP.mod.tileentities.TileEntityWorldgenRegenerator;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldProvider;
+import net.minecraftforge.common.DimensionManager;
 
 public class PacketTileEntityMagneticWorldgenRegenerator extends BasePacket {
 
@@ -44,6 +49,7 @@ public class PacketTileEntityMagneticWorldgenRegenerator extends BasePacket {
 		try
 		{
 			dos.writeByte(ID);
+			dos.writeInt(entity.worldObj.provider.dimensionId);
 			dos.writeInt(x);
 			dos.writeInt(y);
 			dos.writeInt(z);
@@ -51,6 +57,7 @@ public class PacketTileEntityMagneticWorldgenRegenerator extends BasePacket {
 			dos.writeInt(phase);
 			dos.writeInt(fluidAmount);
 			dos.writeInt(pageNum);
+			System.out.println("writing "+pageNum+" on "+FMLCommonHandler.instance().getEffectiveSide().toString()+" side from "+entity.toString());
 			dos.writeInt(itemID);
 			dos.writeByte(items.length);
 			if (items.length > 0)
@@ -73,6 +80,7 @@ public class PacketTileEntityMagneticWorldgenRegenerator extends BasePacket {
 	public void parseData(byte[] packetData) {
 		ByteArrayDataInput dat = ByteStreams.newDataInput(packetData);
 		dat.readByte();
+		int dim = dat.readInt();
         int x = dat.readInt();
         int y = dat.readInt();
         int z = dat.readInt();
@@ -92,10 +100,17 @@ public class PacketTileEntityMagneticWorldgenRegenerator extends BasePacket {
                 items[i] = dat.readInt();
             }
         }
-        
-        World world = AMPMod.proxy.getClientWorld();
-        TileEntity te = world.getBlockTileEntity(x, y, z);
-        TileEntityWorldgenRegenerator icte = (TileEntityWorldgenRegenerator) te;
-        icte.handlePacketData(gauss, pageNum, itemID, phase, fluidAmount, items);
+        //System.out.println(dim);
+        World world = null;
+        if(FMLCommonHandler.instance().getEffectiveSide().isServer())
+        	world = DimensionManager.getWorld(dim);
+        if(FMLCommonHandler.instance().getEffectiveSide().isClient())
+        	world = AMPMod.proxy.getClientWorld();
+        if(world != null)
+        {
+	        TileEntity te = world.getBlockTileEntity(x, y, z);
+	        TileEntityWorldgenRegenerator icte = (TileEntityWorldgenRegenerator) te;
+	        icte.handlePacketData(gauss, pageNum, itemID, phase, fluidAmount, items);
+        }
 	}
 }

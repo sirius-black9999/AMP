@@ -5,11 +5,8 @@ import java.sql.Ref;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.client.Minecraft;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.src.ModLoader;
-import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.Configuration;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fluids.Fluid;
@@ -41,6 +38,7 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.network.NetworkMod;
 import cpw.mods.fml.common.network.NetworkMod.SidedPacketHandler;
 import cpw.mods.fml.common.network.NetworkRegistry;
+import cpw.mods.fml.common.registry.GameRegistry;
 
 /**
  * LetsMod
@@ -113,13 +111,13 @@ public class AMPMod{
     	blockMagneticInductionFurnace = new BlockMagnetInductionFurnace(Reference.magneticConductionFurnaceId, Material.rock).setHardness(1.5F).setStepSound(Block.soundClothFootstep).setTextureName("block_magnetic_furnace_block").setUnlocalizedName("AMP:magnet_furnace_block").setCreativeTab(CreativeTabsAMP.instance);
     	blockWorldgenLiquifier = new BlockWorldgenLiquifier(Reference.magneticWorldgenLiquifierId, Material.rock).setHardness(1.5F).setStepSound(Block.soundClothFootstep).setTextureName("block_worldgen_liquifier").setUnlocalizedName("AMP:worldgen_liquifier_block").setCreativeTab(CreativeTabsAMP.instance);
     	blockWorldgenRegenerator = new BlockWorldgenRegenerator(Reference.magneticWorldgenRegeneratorId, Material.rock).setHardness(1.5F).setStepSound(Block.soundClothFootstep).setTextureName("block_worldgen_regenerator").setUnlocalizedName("AMP:worldgen_regenerator_block").setCreativeTab(CreativeTabsAMP.instance);
-    	ModLoader.registerBlock(blockMultiColorWool);
-    	ModLoader.registerBlock(blockRedCellV2);
-    	ModLoader.registerBlock(blockBloodyStone);
-    	ModLoader.registerBlock(blockMagneticConductor);
-    	ModLoader.registerBlock(blockMagneticInductionFurnace);
-    	ModLoader.registerBlock(blockWorldgenLiquifier);
-    	ModLoader.registerBlock(blockWorldgenRegenerator);
+    	GameRegistry.registerBlock(blockMultiColorWool, "multiColorWool");
+    	GameRegistry.registerBlock(blockRedCellV2, "redCell");
+    	GameRegistry.registerBlock(blockBloodyStone, "bloodyStone");
+    	GameRegistry.registerBlock(blockMagneticConductor, "magneticConductor");
+    	GameRegistry.registerBlock(blockMagneticInductionFurnace, "magneticInductionFurnace");
+    	GameRegistry.registerBlock(blockWorldgenLiquifier, "worldgenLiquifier");
+    	GameRegistry.registerBlock(blockWorldgenRegenerator, "worldgenRegenerator");
     	
 
     	itemBandedStuff = new ItemRedCells(Reference.bandedItemsId);
@@ -152,13 +150,13 @@ public class AMPMod{
     	//FMLNetworkHandler.instance().registerNetworkMod();
     	NetworkRegistry.instance().registerGuiHandler(this, proxy);	
     	net.minecraft.item.crafting.CraftingManager.getInstance().getRecipeList().add(new InfusionRecipe());
-    	ModLoader.addRecipe(new ItemStack(blockRedCellV2), "BBB", "BRB", "BBB", 'B', new ItemStack(itemBandedStuff, 1, 0), 'R', new ItemStack(itemBandedStuff, 1, 1));
-    	ModLoader.addShapelessRecipe(new ItemStack(blockMultiColorWool), new Object[]{new ItemStack(Block.cloth, 1), new ItemStack(Item.dyePowder, 1, 1), new ItemStack(Item.dyePowder, 1, 2), new ItemStack(Item.dyePowder, 1, 4)});
-        ModLoader.addRecipe(new ItemStack(itemBandedStuff, 1, 0), "SSS", "SGS", "SSS", 'S', Block.stone, 'G', Block.thinGlass);
-        ModLoader.addRecipe(new ItemStack(itemBandedStuff, 1, 1), "I I", " R ", "I I", 'I', Item.ingotIron, 'R', Block.blockRedstone);
-        ModLoader.addRecipe(new ItemStack(itemBloodyStone, 1, 64), "RRR", "RSR", "RRR", 'R', Item.rottenFlesh, 'S', Block.stone);
-        ModLoader.addRecipe(new ItemStack(blockBloodyStone, 1, 0), "ILI", "LSL", "ILI", 'I', Item.ingotIron, 'L', Item.leather, 'S', new ItemStack(itemBloodyStone, 1, 0));
-        ModLoader.registerTileEntity(TileEntityMagnetic.class, "magnetBlock");
+    	GameRegistry.addRecipe(new ItemStack(blockRedCellV2), "BBB", "BRB", "BBB", 'B', new ItemStack(itemBandedStuff, 1, 0), 'R', new ItemStack(itemBandedStuff, 1, 1));
+    	GameRegistry.addShapelessRecipe(new ItemStack(blockMultiColorWool), new Object[]{new ItemStack(Block.cloth, 1), new ItemStack(Item.dyePowder, 1, 1), new ItemStack(Item.dyePowder, 1, 2), new ItemStack(Item.dyePowder, 1, 4)});
+    	GameRegistry.addRecipe(new ItemStack(itemBandedStuff, 1, 0), "SSS", "SGS", "SSS", 'S', Block.stone, 'G', Block.thinGlass);
+    	GameRegistry.addRecipe(new ItemStack(itemBandedStuff, 1, 1), "I I", " R ", "I I", 'I', Item.ingotIron, 'R', Block.blockRedstone);
+    	GameRegistry.addRecipe(new ItemStack(itemBloodyStone, 1, 64), "RRR", "RSR", "RRR", 'R', Item.rottenFlesh, 'S', Block.stone);
+    	GameRegistry.addRecipe(new ItemStack(blockBloodyStone, 1, 0), "ILI", "LSL", "ILI", 'I', Item.ingotIron, 'L', Item.leather, 'S', new ItemStack(itemBloodyStone, 1, 0));
+    	GameRegistry.registerTileEntity(TileEntityMagnetic.class, "magnetBlock");
        
         MinecraftForge.EVENT_BUS.register(new WorldgenMonitor());
         MinecraftForge.EVENT_BUS.register(fluidLiquidWorldgen);

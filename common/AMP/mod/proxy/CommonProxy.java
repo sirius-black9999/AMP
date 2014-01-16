@@ -27,11 +27,6 @@ public class CommonProxy implements IGuiHandler{
     {
         return null;
     }
-
-    public void setInventoryPageNum(TileEntityWorldgenRegenerator inv, int pagenum)
-    {
-    	inv.selectedPageNum = pagenum;
-    }
     @Override
     public Object getServerGuiElement(int ID, EntityPlayer player, World world, int X, int Y, int Z)
     {

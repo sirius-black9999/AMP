@@ -35,6 +35,18 @@ magnetic induction furnace(mostly done)
 	the magnetic induction furnace instantly smelts items once it has received sufficient power
 	the magnetic induction furnace uses power based on the rarity of the object(determined by the worldgen monitor), and will only smelt items that are considered worldgen (iron ore, for example, will smelt, while cobblestone won't)
 	
+Magnetic Worldgen Liquifier(mostly done)
+	The magnetic worldgen liquifier uses data derived from the worldgen monitor to determine an amount of "liquid worldgen" to convert a given worldgen block to
+	The magnetic worldgen liquifier can only be spawned from the creative menu
+	The magnetic worldgen liquifier does not have a texture yet
+	The magnetic worldgen liquifier extends magnetic blocks, inheriting all it's behavior other than transmitting power outward
+	
+Magnetic Worldgen reconstructor(partially done)
+	The magnetic worldgen reconstructor uses data derived from the worldgen monitor to determine an amount of "liquid worldgen" to convert to a selectable worldgen block
+	The magnetic worldgen reconstructor can only be spawned from the creative menu
+	The magnetic worldgen reconstructor does not have a texture yet
+	The magnetic worldgen reconstructor extends magnetic blocks, inheriting all it's behavior other than transmitting power outward
+	
 worldgen monitor(needs a lot of testing)
 	the worldgen monitor stores the frequency with which items spawn in the world, it saves said information per-biome in a config file called AMP_BlockValues.cfg next to the other config files
 	be sure to delete this file when adding/removing mods that alter worldgen to ensure a correct recording of information

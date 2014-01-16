@@ -4,6 +4,7 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ISidedInventory;
+import net.minecraft.inventory.Slot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -32,6 +33,12 @@ public class TileEntityWorldgenRegenerator extends TileEntityMagnetic implements
     
 	public TileEntityWorldgenRegenerator() {
 		tank = new FluidStack(AMPMod.fluidLiquidWorldgen, 0);
+	}
+	public void setPageNum(int newPageNum)
+	{
+		//System.out.println("setPagenum called  on "+FMLCommonHandler.instance().getEffectiveSide().toString()+" side");
+		selectedPageNum = newPageNum;
+		PacketHandler.SendPacketClientToServer(this);
 	}
 	@Override
 	public boolean canUpdate() {
@@ -305,9 +312,18 @@ public class TileEntityWorldgenRegenerator extends TileEntityMagnetic implements
         if(FMLCommonHandler.instance().getEffectiveSide().isServer())
         {
 	        this.selectedItemId = itemId;
-	        this.selectedPageNum = pageNum;
-	        System.out.println("received pagenum "+pageNum+" on "+FMLCommonHandler.instance().getEffectiveSide().toString()+" side");
+	        if(pageNum != this.selectedPageNum)
+	        {
+	        	System.out.println("changing "+this.selectedPageNum+" to "+pageNum);
+	        	this.selectedPageNum = pageNum;
+	        	fillItemSlots();
+	        	PacketHandler.SendPacketServerToAllClients(this);
+	        }
+	        System.out.println("received pagenum "+pageNum+" on "+FMLCommonHandler.instance().getEffectiveSide().toString()+" side from "+this.toString());
+	        
         }
+        fillItemSlots();
+        //System.out.println(pageNum);
         if (intData != null)
         {
             int pos = 0;
@@ -401,5 +417,23 @@ public class TileEntityWorldgenRegenerator extends TileEntityMagnetic implements
 	@Override
 	public FluidTankInfo[] getTankInfo(ForgeDirection from) {
 		return tankInfo;
+	}
+	public void fillItemSlots() {
+		Integer[] entries = WorldgenMonitor.getAllUniqueBlockIds();
+    	for(int i = 0; i < 20; i++)
+		{
+    		
+    		int entry = 20*selectedPageNum+i;
+    		if(entry < entries.length)
+    		{
+    			//System.out.println("putting stack "+entries[entry]+" page "+entry+"/"+entries.length);
+				setInventorySlotContents(i+1, new ItemStack(Item.itemsList[entries[entry]]));
+    		}
+    		else
+    		{
+    			//System.out.println("clearing stack " + entry);
+    			setInventorySlotContents(i+1, null);
+    		}
+		}
 	}
 }

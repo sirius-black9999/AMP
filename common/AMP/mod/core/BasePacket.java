@@ -8,7 +8,7 @@ import net.minecraft.tileentity.TileEntity;
 
 public class BasePacket {
 
-	public int ID = 0;
+	public Byte ID = 0;
 	public void parseData(byte[] packetData)
 	{
 		

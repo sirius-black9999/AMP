@@ -27,33 +27,33 @@ public abstract class BlockMagnetic extends BlockContainer {
 		return false;
 	}
 	protected void applyMagneticTransmission(World world, int x, int y, int z) {
-		TileEntityMagnetic TE = null;
+		TileEntity te = null;
 		switch(world.getBlockMetadata(x, y, z)%6)
 		{
 		case 0:
-			TE = (TileEntityMagnetic)world.getBlockTileEntity(x, y-1, z);
+			te = world.getBlockTileEntity(x, y-1, z);
 			break;
 		case 1:
-			TE = (TileEntityMagnetic)world.getBlockTileEntity(x, y+1, z);
+			te = world.getBlockTileEntity(x, y+1, z);
 			break;
 		case 2:
-			TE = (TileEntityMagnetic)world.getBlockTileEntity(x, y, z-1);
+			te = world.getBlockTileEntity(x, y, z-1);
 			break;
 		case 3:
-			TE = (TileEntityMagnetic)world.getBlockTileEntity(x, y, z+1);
+			te = world.getBlockTileEntity(x, y, z+1);
 			break;
 		case 4:
-			TE = (TileEntityMagnetic)world.getBlockTileEntity(x-1, y, z);
+			te = world.getBlockTileEntity(x-1, y, z);
 			break;
 		case 5:
-			TE = (TileEntityMagnetic)world.getBlockTileEntity(x+1, y, z);
+			te = world.getBlockTileEntity(x+1, y, z);
 			break;
 		}
 		//System.out.println("calling "+world.getBlockMetadata(x, y, z)%6+": "+TE);
 		//System.out.println("from: "+world.getBlockTileEntity(x, y, z));
-		if(TE != null)
+		if(te != null && te instanceof TileEntityMagnetic)
 		{
-			((TileEntityMagnetic) world.getBlockTileEntity(x, y, z)).adjacentMagnets(TE);
+			((TileEntityMagnetic) world.getBlockTileEntity(x, y, z)).adjacentMagnets((TileEntityMagnetic)te);
 		}
 		else
 		{

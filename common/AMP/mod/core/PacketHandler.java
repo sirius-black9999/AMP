@@ -40,10 +40,10 @@ import cpw.mods.fml.common.network.Player;
 
 public class PacketHandler implements IPacketHandler {
 
-	static HashMap<Integer, BasePacket> packets;
+	static HashMap<Byte, BasePacket> packets;
 	public PacketHandler()
 	{
-		packets = new HashMap<Integer, BasePacket>();
+		packets = new HashMap<Byte, BasePacket>();
 		Set<Class<?>> classes;
 		try {
 			classes = ClassFinder.getClasses("AMP.mod.core.packets");
@@ -70,7 +70,7 @@ public class PacketHandler implements IPacketHandler {
     {
 		
 		ByteArrayDataInput dat = ByteStreams.newDataInput(packet.data);
-		int id = dat.readByte();
+		byte id = dat.readByte();
         BasePacket target = packets.get(id);
         if(target != null)
         {
@@ -85,8 +85,8 @@ public class PacketHandler implements IPacketHandler {
 	public static Packet getPacket(Object ent) {
 		BasePacket target = null;
 		//System.out.println("comparing "+packets.size()+" packet types");
-		for(Entry<Integer, BasePacket> entry : packets.entrySet())
-		{
+		for(Entry<Byte, BasePacket> entry : packets.entrySet())
+		{	
 			if(entry.getValue().appliesTo(ent))
 			{
 				target = entry.getValue();

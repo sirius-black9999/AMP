@@ -51,11 +51,6 @@ public class WorldgenRegeneratorContainer extends Container implements IFluidTan
         super.onContainerClosed(entityplayer);
         chest.closeChest();
     }
-    public void redoLayout()
-    {
-    	fillItemSlots(37,56, (TileEntityWorldgenRegenerator)chest);
-    	PacketHandler.SendPacketClientToServer(chest);
-    }
     protected void layoutContainer(IInventory playerInventory, IInventory chestInventory)
     {
     	inventorySlots.clear();
@@ -85,37 +80,34 @@ public class WorldgenRegeneratorContainer extends Container implements IFluidTan
         		addSlotToContainer(new Slot(chest, row*5+col+1, 35+(18*col), -10+18*row));
         	}
         }
-        fillItemSlots(37,56, (TileEntityWorldgenRegenerator)chest);
+        ((TileEntityWorldgenRegenerator)chest).fillItemSlots();//fillItemSlots(37,56, (TileEntityWorldgenRegenerator)chest);
         System.out.println(this.inventorySlots.size());
     }
-    @SuppressWarnings("unchecked")
-	public void fillItemSlots(int start, int end, TileEntityWorldgenRegenerator inv) {
-    	
-    	int pageNum = inv.selectedPageNum;
-		Integer[] entries = WorldgenMonitor.getAllUniqueBlockIds();
-    	for(int i = 0; i < end-start+1; i++)
-		{
-    		
-    		int entry = 20*pageNum+i;
-    		Slot target = (Slot) inventorySlots.get(start+i);
-    		if(entry < entries.length)
-    		{
-    			System.out.println("putting stack "+entries[entry]+" page "+entry+"/"+entries.length);
-				target.inventory.setInventorySlotContents(i+1, new ItemStack(Item.itemsList[entries[entry]]));
-				target.inventory.onInventoryChanged();
-    		}
-    		else
-    		{
-    			System.out.println("clearing stack " + entry);
-    			target.inventory.setInventorySlotContents(i+1, null);
-    			target.inventory.onInventoryChanged();
-    		}
-    		target.onSlotChanged();
-		}
-    	detectAndSendChanges();
-    	inv.onInventoryChanged();
-    	PacketHandler.SendPacketClientToServer(inv);
-	}
+//    @SuppressWarnings("unchecked")
+//	public void fillItemSlots(int start, int end, TileEntityWorldgenRegenerator inv) {
+//    	
+//    	int pageNum = inv.selectedPageNum;
+//		Integer[] entries = WorldgenMonitor.getAllUniqueBlockIds();
+//    	for(int i = 0; i < end-start+1; i++)
+//		{
+//    		
+//    		int entry = 20*pageNum+i;
+//    		Slot target = (Slot) inventorySlots.get(start+i);
+//    		if(entry < entries.length)
+//    		{
+//    			System.out.println("putting stack "+entries[entry]+" page "+entry+"/"+entries.length);
+//				target.inventory.setInventorySlotContents(i+1, new ItemStack(Item.itemsList[entries[entry]]));
+//    		}
+//    		else
+//    		{
+//    			System.out.println("clearing stack " + entry);
+//    			target.inventory.setInventorySlotContents(i+1, null);
+//    		}
+//		}
+//    	//detectAndSendChanges();
+//    	//inv.onInventoryChanged();
+//    	//PacketHandler.SendPacketClientToServer(inv);
+//	}
 
 	@Override
     public boolean canInteractWith(EntityPlayer player)
@@ -244,6 +236,11 @@ public class WorldgenRegeneratorContainer extends Container implements IFluidTan
 			tank.amount -= maxDrain;
 			return new FluidStack(AMPMod.fluidLiquidWorldgen, maxDrain);
 		}
+	}
+
+	public void redoLayout() {
+		layoutContainer(player.inventory, chest);
+		
 	}
 
 }

@@ -10,6 +10,7 @@
  ******************************************************************************/
 package AMP.mod.GUI;
 
+import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.entity.player.InventoryPlayer;
@@ -92,6 +93,7 @@ public class WorldgenRegeneratorGui extends GuiContainer {
     @Override
     protected void drawGuiContainerBackgroundLayer(float f, int i, int j)
     {
+    	((WorldgenRegeneratorContainer)inventorySlots).redoLayout();
     	//System.out.println("F: "+f+", I: "+i+", J: "+j);
     	mouseMovedOrUp(i, j, -1);
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
@@ -263,13 +265,7 @@ public class WorldgenRegeneratorGui extends GuiContainer {
     		button3Phase = 0;
     		if(inventory.selectedPageNum*20 < WorldgenMonitor.getAllUniqueBlockIds().length)
     		{
-    			inventory.selectedPageNum++;
-    			((WorldgenRegeneratorContainer) inventorySlots).redoLayout();
-    			
-    		}
-    		else
-    		{
-    			System.out.println("startIndex: "+inventory.selectedPageNum*20+", endIndex: "+WorldgenMonitor.getAllUniqueBlockIds().length);
+    			inventory.setPageNum(inventory.selectedPageNum+1);		
     		}
 		}
     	if(isPointInRegion(129, -8, 16, 16, mouseX, mouseY))
@@ -277,8 +273,7 @@ public class WorldgenRegeneratorGui extends GuiContainer {
     		button4Phase = 0;
     		if(inventory.selectedPageNum>0)
     		{
-    			inventory.selectedPageNum--;
-    			((WorldgenRegeneratorContainer) inventorySlots).redoLayout();
+    			inventory.setPageNum(inventory.selectedPageNum-1);
     		}
 		}
     	if(!gotTriggered)
